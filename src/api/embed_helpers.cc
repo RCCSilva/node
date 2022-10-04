@@ -1,6 +1,6 @@
-#include "node.h"
-#include "env-inl.h"
 #include "debug_utils-inl.h"
+#include "env-inl.h"
+#include "node.h"
 
 using v8::Context;
 using v8::Function;
@@ -30,6 +30,7 @@ Maybe<int> SpinEventLoop(Environment* env) {
   env->set_trace_sync_io(env->options()->trace_sync_io);
   {
     bool more;
+    printf("more1 %i", more);
     env->performance_state()->Mark(
         node::performance::NODE_PERFORMANCE_MILESTONE_LOOP_START);
     do {
@@ -40,10 +41,10 @@ Maybe<int> SpinEventLoop(Environment* env) {
       platform->DrainTasks(isolate);
 
       more = uv_loop_alive(env->event_loop());
+      printf("more2 %i", more);
       if (more && !env->is_stopping()) continue;
 
-      if (EmitProcessBeforeExit(env).IsNothing())
-        break;
+      if (EmitProcessBeforeExit(env).IsNothing()) break;
 
       {
         HandleScope handle_scope(isolate);
@@ -86,7 +87,7 @@ CommonEnvironmentSetup::CommonEnvironmentSetup(
     MultiIsolatePlatform* platform,
     std::vector<std::string>* errors,
     std::function<Environment*(const CommonEnvironmentSetup*)> make_env)
-  : impl_(new Impl()) {
+    : impl_(new Impl()) {
   CHECK_NOT_NULL(platform);
   CHECK_NOT_NULL(errors);
 
@@ -109,8 +110,8 @@ CommonEnvironmentSetup::CommonEnvironmentSetup(
   {
     Locker locker(isolate);
     Isolate::Scope isolate_scope(isolate);
-    impl_->isolate_data.reset(CreateIsolateData(
-        isolate, loop, platform, impl_->allocator.get()));
+    impl_->isolate_data.reset(
+        CreateIsolateData(isolate, loop, platform, impl_->allocator.get()));
 
     HandleScope handle_scope(isolate);
     Local<Context> context = NewContext(isolate);
@@ -138,15 +139,15 @@ CommonEnvironmentSetup::~CommonEnvironmentSetup() {
     }
 
     bool platform_finished = false;
-    impl_->platform->AddIsolateFinishedCallback(isolate, [](void* data) {
-      *static_cast<bool*>(data) = true;
-    }, &platform_finished);
+    impl_->platform->AddIsolateFinishedCallback(
+        isolate,
+        [](void* data) { *static_cast<bool*>(data) = true; },
+        &platform_finished);
     impl_->platform->UnregisterIsolate(isolate);
     isolate->Dispose();
 
     // Wait until the platform has cleaned up all relevant resources.
-    while (!platform_finished)
-      uv_run(&impl_->loop, UV_RUN_ONCE);
+    while (!platform_finished) uv_run(&impl_->loop, UV_RUN_ONCE);
   }
 
   if (impl_->isolate || impl_->loop.data != nullptr)
@@ -154,7 +155,6 @@ CommonEnvironmentSetup::~CommonEnvironmentSetup() {
 
   delete impl_;
 }
-
 
 uv_loop_t* CommonEnvironmentSetup::event_loop() const {
   return &impl_->loop;

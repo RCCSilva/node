@@ -1332,6 +1332,7 @@ void Environment::ToggleTimerRef(bool ref) {
 }
 
 void Environment::RunTimers(uv_timer_t* handle) {
+  printf("[node] starting - node implementation to run timers\n");
   Environment* env = Environment::from_timer_handle(handle);
   TRACE_EVENT0(TRACING_CATEGORY_NODE1(environment), "RunTimers");
 
@@ -1353,7 +1354,9 @@ void Environment::RunTimers(uv_timer_t* handle) {
   do {
     TryCatchScope try_catch(env);
     try_catch.SetVerbose(true);
+    printf("call 1\n");
     ret = cb->Call(env->context(), process, 1, &arg);
+    printf("call 2\n");
   } while (ret.IsEmpty() && env->can_call_into_js());
 
   // NOTE(apapirovski): If it ever becomes possible that `call_into_js` above
@@ -1389,6 +1392,8 @@ void Environment::RunTimers(uv_timer_t* handle) {
   } else {
     uv_unref(h);
   }
+
+  printf("[node] finished - node implementation to run timers\n");
 }
 
 

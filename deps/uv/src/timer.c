@@ -173,9 +173,12 @@ void uv__run_timers(uv_loop_t* loop) {
     if (handle->timeout > loop->time)
       break;
 
+    printf("[uv] found one pending timer!\n");
     uv_timer_stop(handle);
     uv_timer_again(handle);
+    printf("[uv] starting - timer callback (timeout: %lu)\n", handle->timeout);
     handle->timer_cb(handle);
+    printf("[uv] finished - timer callback\n");
   }
 }
 

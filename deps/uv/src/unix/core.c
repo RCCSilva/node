@@ -377,6 +377,7 @@ int uv_run(uv_loop_t* loop, uv_run_mode mode) {
 
   while (r != 0 && loop->stop_flag == 0) {
     uv__update_time(loop);
+    printf("[uv] running timers\n");
     uv__run_timers(loop);
     ran_pending = uv__run_pending(loop);
     uv__run_idle(loop);
@@ -386,7 +387,9 @@ int uv_run(uv_loop_t* loop, uv_run_mode mode) {
     if ((mode == UV_RUN_ONCE && !ran_pending) || mode == UV_RUN_DEFAULT)
       timeout = uv_backend_timeout(loop);
 
+    printf("[uv] starting - waiting for iopoll\n");
     uv__io_poll(loop, timeout);
+    printf("[uv] finished - waiting for iopoll\n");
 
     /* Run one final update on the provider_idle_time in case uv__io_poll
      * returned because the timeout expired, but no events were received. This

@@ -5237,6 +5237,7 @@ MaybeLocal<Object> Function::NewInstanceWithSideEffectType(
 MaybeLocal<v8::Value> Function::Call(Local<Context> context,
                                      v8::Local<v8::Value> recv, int argc,
                                      v8::Local<v8::Value> argv[]) {
+  // printf("[v8] starting - running js code\n");
   auto isolate = reinterpret_cast<i::Isolate*>(context->GetIsolate());
   TRACE_EVENT_CALL_STATS_SCOPED(isolate, "v8", "V8.Execute");
   ENTER_V8(isolate, context, Function, Call, MaybeLocal<Value>(),
@@ -5254,6 +5255,7 @@ MaybeLocal<v8::Value> Function::Call(Local<Context> context,
   has_pending_exception = !ToLocal<Value>(
       i::Execution::Call(isolate, self, recv_obj, argc, args), &result);
   RETURN_ON_FAILED_EXECUTION(Value);
+  // printf("[v8] finished - running js code\n");
   RETURN_ESCAPED(result);
 }
 
